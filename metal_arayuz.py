@@ -3,48 +3,56 @@ import yfinance as yf
 import pandas as pd
 import time
 
-# Sayfa Genişliği ve Başlık
-st.set_page_config(page_title="LME Canlı Takip", layout="wide")
+# Sayfa Ayarları
+st.set_page_config(page_title="LME & Kur Takibi", layout="wide")
 
-st.title("📊 LME Metal Borsası - Canlı Takip Paneli")
+st.title("📊 LME Metal ve Döviz Takip Paneli")
 
-# --- YENİ ÖZELLİK: Otomatik Yenileme (Yahoo Engelini Aşmak İçin) ---
-# Sayfanın kaç saniyede bir kendini tazeleyeceğini belirler
+# Kontrol Paneli
 guncelleme_hizi = st.sidebar.slider("Güncelleme Hızı (Saniye)", 30, 300, 60)
 
-# Veri çekme fonksiyonunu önbelleğe alıyoruz (Sürekli internete gitmemesi için)
 @st.cache_data(ttl=guncelleme_hizi)
 def veri_cek(sembol):
     try:
         data = yf.Ticker(sembol)
-        df = data.history(period="5d")
-        güncel_fiyat = round(df['Close'].iloc[-1], 2)
-        degisim = round(güncel_fiyat - df['Close'].iloc[-2], 2)
-        return güncel_fiyat, degisim, df['Close']
+        df = data.history(period="2d") # Kur için son 2 gün yeterli
+        guncel = round(df['Close'].iloc[-1], 2)
+        degisim = round(guncel - df['Close'].iloc[-2], 2)
+        return guncel, degisim, df['Close']
     except:
         return 0.0, 0.0, pd.Series()
 
-# Verileri çek
-bakir_fiyat, bakir_fark, bakir_liste = veri_cek('HG=F')
-alu_fiyat, alu_fark, alu_liste = veri_cek('ALI=F')
+# Verileri Çekelim
+bakir_fiyat, bakir_fark, _ = veri_cek('HG=F')
+alu_fiyat, alu_fark, _ = veri_cek('ALI=F')
+dolar_fiyat, dolar_fark, _ = veri_cek('USDTRY=X') # Dolar kurunu çeken satır
 
-# Üst Alan (Metrikler)
-col1, col2, col3 = st.columns(3)
-col1.metric("Bakır (USD/lb)", f"{bakir_fiyat}", f"{bakir_fark}")
-col2.metric("Alüminyum (USD/ton)", f"{alu_fiyat}", f"{alu_fark}")
-col3.info(f"⏱️ Son Senkronizasyon: {time.strftime('%H:%M:%S')}")
+# Metrikleri Gösterelim
+col1, col2, col3, col4 = st.columns(4)
 
-# Orta Alan (Grafik)
-st.subheader("📈 Fiyat Trendi (Son 5 Gün)")
-if not bakir_liste.empty:
-    grafik_data = pd.DataFrame({
-        "Bakır": bakir_liste,
-        "Alüminyum": alu_liste
-    })
-    st.line_chart(grafik_data)
-else:
-    st.warning("Veri şu an çekilemiyor, lütfen biraz bekleyin.")
+with col1:
+    st.metric("Bakır (USD)", f"{bakir_fiyat}$", f"{bakir_fark}")
 
-# --- SAYFAYI OTOMATİK YENİLE ---
+with col2:
+    st.metric("Alüminyum (USD)", f"{alu_fiyat}$", f"{alu_fark}")
+
+with col3:
+    # Dolar kurunu burada gösteriyoruz
+    st.metric("USD / TRY", f"{dolar_fiyat} ₺", f"{dolar_fark}")
+
+with col4:
+    st.write(f"⏱️ Son Güncelleme:  \n{time.strftime('%H:%M:%S')}")
+
+# Hesaplama Alanı (Bonus)
+st.divider()
+st.subheader("🧮 Hızlı Hesaplama (TL Karşılığı)")
+secilen_metal = st.radio("Hesaplanacak Metali Seçin:", ["Bakır", "Alüminyum"], horizontal=True)
+
+fiyat = bakir_fiyat if secilen_metal == "Bakır" else alu_fiyat
+toplam_tl = round(fiyat * dolar_fiyat, 2)
+
+st.info(f"1 Birim **{secilen_metal}** şu an yaklaşık **{toplam_tl} ₺** ediyor.")
+
+# Sayfayı tazele
 time.sleep(guncelleme_hizi)
 st.rerun()
