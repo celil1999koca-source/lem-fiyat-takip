@@ -36,13 +36,7 @@ with col_inp1:
 with col_inp2:
     hedef_fiyat = st.number_input("Satış Hedef Fiyatı (USD/Ton)", min_value=0.0, value=2600.0, step=10.0)
 
-# 6. GÖRSEL ALARM (Hedef Kontrolü)
-if alu_fiyat >= hedef_fiyat and hedef_fiyat > 0:
-    st.balloons()
-    st.success(f"🚀 HEDEF GÖRÜLDÜ! Güncel: {alu_fiyat}$ | Hedefin: {hedef_fiyat}$")
-else:
-    kalan = round(hedef_fiyat - alu_fiyat, 2)
-    st.info(f"🎯 Hedefe Kalan: **{kalan}$** | Hedefe Yakınlık: **%{(alu_fiyat/hedef_fiyat)*100:.1f}**")
+
 
 # 7. HESAPLAMA VE DEĞER TABLOSU (İstediğin Kısım)
 st.write("---")
