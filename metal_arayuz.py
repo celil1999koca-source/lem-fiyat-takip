@@ -2,26 +2,83 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import time
+import base64 # Görseli yüklemek için gerekli
 
 # 1. Sayfa Ayarları
-st.set_page_config(page_title="Alüminyum 1 Yıllık Analiz", layout="wide")
+st.set_page_config(page_title="Alüminyum Profesyonel Takip", layout="wide")
+
+# --- ARKA PLAN GÖRSELİ AYARLARI ---
+# Görseli base64 formatına çeviren fonksiyon
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Arka plan görselini ve overlay'i uygulayan CSS
+def set_png_as_page_bg(png_file):
+    try:
+        bin_str = get_base64_of_bin_file(png_file)
+        page_bg_img = f'''
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{bin_str}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        
+        /* İçeriğin okunabilirliği için hafif bir overlay (karartma) */
+        .stApp::before {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* Karartma oranı: 0.4 */
+            z-index: -1;
+        }}
+        
+        /* Metinleri ve kartları daha okunaklı yapmak için stil ayarı */
+        .stMarkdown, .stMetric, .stDataFrame, .stTable, p, h1, h2, h3 {{
+            color: white !important; /* Tüm metinleri beyaz yap */
+        }}
+        
+        /* Kutucukların içindeki siyah yazıları beyaz yap */
+        .stTextInput input, .stNumberInput input, .stSelectbox div {{
+            color: black !important; /* Giriş metinleri siyah kalsın (okunabilirlik için) */
+        }}
+        
+        /* Kartların arka planını hafif şeffaf yap */
+        div[data-testid="metric-container"] {{
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }}
+        </style>
+        '''
+        st.markdown(page_bg_img, unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning(f"⚠️ Arka plan görseli bulunamadı. Lütfen '{png_file}' dosyasının proje klasöründe olduğundan emin olun.")
+
+# Görseli uygula (billet.png isminde bir dosya yüklemelisin)
+set_png_as_page_bg('billet.png')
+# ----------------------------------
 
 # 2. Başlık
-st.markdown("<h2 style='text-align: center;'>📊 Alüminyum Yıllık Analiz Paneli</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: white;'>💼 Alüminyum Ticari Takip Paneli</h2>", unsafe_allow_html=True)
 
 # 3. Ayarlar (Sidebar)
 guncelleme_hizi = st.sidebar.slider("Güncelleme Hızı (Saniye)", 30, 300, 60)
 
-# 4. Veri Çekme Fonksiyonu (1 Yıllık Veri Aktif)
+# 4. Veri Çekme Fonksiyonu
 @st.cache_data(ttl=guncelleme_hizi)
 def veri_cek(sembol):
     try:
         ticker = yf.Ticker(sembol)
-        # Veri periyodu 1 yıla çıkarıldı
         df = ticker.history(period="1y") 
         if df.empty: return 0.0, 0.0, pd.Series()
         guncel = round(df['Close'].iloc[-1], 2)
-        # Değişim hala son iş gününe göre hesaplanıyor
         degisim = round(guncel - df['Close'].iloc[-2], 2)
         return guncel, degisim, df['Close']
     except:
@@ -32,10 +89,13 @@ dolar_fiyat, dolar_fark, _ = veri_cek('USDTRY=X')
 
 # 5. Miktar Giriş Alanı
 st.divider()
+st.markdown("### 📥 Veri Girişi", unsafe_allow_html=True)
 miktar = st.number_input("Eldeki Miktar (Ton)", min_value=0.0, value=1.0, step=0.1)
 
 # 6. Hesaplama ve Değer Tablosu
+st.write("---")
 st.subheader("🧮 Güncel Değer Hesaplamaları")
+
 toplam_usd = miktar * alu_fiyat
 toplam_tl = toplam_usd * dolar_fiyat
 
@@ -66,13 +126,12 @@ with st.expander("📉 Kâr/Zarar Detaylarını Gör"):
     else:
         st.error(f"🚨 Toplam Zarar: {fark_tl:,.2f} ₺")
 
-# 9. Grafik (1 Yıllık Görünüm)
+# 9. Grafik (Yıllık Görünüm)
 st.subheader("📈 1 Yıllık Fiyat Grafiği")
 if not alu_liste.empty:
-    # Grafiği daha detaylı görmek için line_chart kullanıyoruz
     st.line_chart(alu_liste)
 else:
-    st.error("Veri çekilemedi, lütfen internet bağlantınızı kontrol edin.")
+    st.error("Veri çekilemedi.")
 
 # 10. Otomatik Yenileme
 time.sleep(guncelleme_hizi)
