@@ -4,7 +4,7 @@ import pandas as pd
 import time
 
 # 1. Sayfa Ayarları
-st.set_page_config(page_title="Alüminyum & Kur Takibi", layout="wide")
+st.set_page_config(page_title="Alüminyum fiyat Takibi", layout="wide")
 
 # 2. Mobil Uyumlu Başlık
 st.markdown("<h2 style='text-align: center;'>📱 Alüminyum & Döviz Takip</h2>", unsafe_allow_html=True)
