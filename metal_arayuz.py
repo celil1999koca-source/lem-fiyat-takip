@@ -4,12 +4,12 @@ import pandas as pd
 import time
 
 # 1. Sayfa Ayarları
-st.set_page_config(page_title="Alüminyum Profesyonel Terminal", layout="wide")
+st.set_page_config(page_title="Alüminyum Ticari Terminal", layout="wide")
 
 # 2. Başlık
-st.markdown("<h2 style='text-align: center;'>📊 Alüminyum Canlı Takip & Alarm</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>💼 Alüminyum Profesyonel Takip Sistemi</h2>", unsafe_allow_html=True)
 
-# 3. Ayarlar (Sidebar'da sadece yenileme kalsın)
+# 3. Ayarlar (Sidebar)
 guncelleme_hizi = st.sidebar.slider("Güncelleme Hızı (Saniye)", 30, 300, 60)
 
 # 4. Veri Çekme
@@ -28,42 +28,50 @@ def veri_cek(sembol):
 alu_fiyat, alu_fark, alu_liste = veri_cek('ALI=F')
 dolar_fiyat, dolar_fark, _ = veri_cek('USDTRY=X')
 
-# 5. Ana Giriş Alanı (Miktar ve Hedef Yan Yana)
+# 5. Ana Giriş Paneli (Miktar ve Hedef)
 st.divider()
 col_inp1, col_inp2 = st.columns(2)
-
 with col_inp1:
     miktar = st.number_input("Eldeki Miktar (Ton)", min_value=0.0, value=1.0, step=0.1)
-
 with col_inp2:
-    hedef_fiyat = st.number_input("Satış Hedef Fiyatı (USD)", min_value=0.0, value=2600.0, step=10.0)
+    hedef_fiyat = st.number_input("Satış Hedef Fiyatı (USD/Ton)", min_value=0.0, value=2600.0, step=10.0)
 
 # 6. GÖRSEL ALARM (Hedef Kontrolü)
 if alu_fiyat >= hedef_fiyat and hedef_fiyat > 0:
     st.balloons()
-    st.markdown(f"""
-        <div style="background-color:#155724; border: 2px solid #d4edda; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
-            <h1 style="color:#d4edda; margin:0;">🚀 HEDEF GÖRÜLDÜ!</h1>
-            <p style="color:#d4edda; font-size:22px; margin:10px 0;">Güncel: {alu_fiyat}$ | Hedefin: {hedef_fiyat}$</p>
-            <strong style="color:white; font-size:25px;">SATIŞ İÇİN UYGUN SEVİYE!</strong>
-        </div>
-    """, unsafe_allow_html=True)
+    st.success(f"🚀 HEDEF GÖRÜLDÜ! Güncel: {alu_fiyat}$ | Hedefin: {hedef_fiyat}$")
 else:
     kalan = round(hedef_fiyat - alu_fiyat, 2)
-    st.info(f"🎯 Hedefe Kalan: **{kalan}$** | Mevcut Fiyatın Hedefe Oranı: **%{(alu_fiyat/hedef_fiyat)*100:.1f}**")
+    st.info(f"🎯 Hedefe Kalan: **{kalan}$** | Hedefe Yakınlık: **%{(alu_fiyat/hedef_fiyat)*100:.1f}**")
 
-# 7. Canlı Göstergeler (Metrikler)
+# 7. HESAPLAMA VE DEĞER TABLOSU (İstediğin Kısım)
+st.write("---")
+st.subheader("🧮 Güncel Değer Hesaplamaları")
+
+# Hesaplamalar
+toplam_usd = miktar * alu_fiyat
+toplam_tl = toplam_usd * dolar_fiyat
+
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.markdown(f"**1 Ton Fiyatı:** \n💵 {alu_fiyat:,} $  \n₺ {round(alu_fiyat * dolar_fiyat, 2):,} ₺")
+with c2:
+    st.markdown(f"**Toplam Tutar (USD):** \n### {toplam_usd:,.2f} $")
+with c3:
+    st.markdown(f"**Toplam Tutar (TL):** \n### {toplam_tl:,.2f} ₺")
+
+# 8. Canlı Göstergeler (Metrikler)
 st.write("---")
 m1, m2, m3 = st.columns(3)
 m1.metric("LME Alüminyum", f"{alu_fiyat}$", f"{alu_fark}")
 m2.metric("Dolar / TRY", f"{dolar_fiyat} ₺", f"{dolar_fark}")
-m3.metric("Toplam Değer (TL)", f"{round(miktar * alu_fiyat * dolar_fiyat, 2):,} ₺")
+m3.metric("Günlük Değişim", f"{alu_fark}$", delta_color="normal")
 
-# 8. Kâr / Zarar Genişletici
+# 9. Kâr / Zarar Genişletici
 with st.expander("📉 Kâr/Zarar Hesaplama Detayları"):
-    c_a, c_b = st.columns(2)
-    alis_fiyati = c_a.number_input("Alış Fiyatın (USD)", value=2200.0)
-    alis_kuru = c_b.number_input("Alış Kurun (₺)", value=dolar_fiyat)
+    ca, cb = st.columns(2)
+    alis_fiyati = ca.number_input("Alış Fiyatın (USD)", value=2200.0)
+    alis_kuru = cb.number_input("Alış Kurun (₺)", value=dolar_fiyat)
     fark_tl = (miktar * alu_fiyat * dolar_fiyat) - (miktar * alis_fiyati * alis_kuru)
     
     if fark_tl >= 0:
@@ -71,10 +79,10 @@ with st.expander("📉 Kâr/Zarar Hesaplama Detayları"):
     else:
         st.error(f"🚨 Toplam Zarar: {fark_tl:,.2f} ₺")
 
-# 9. Grafik
+# 10. Grafik
 st.subheader("📈 Fiyat Trendi (Son 5 Gün)")
 st.line_chart(alu_liste)
 
-# 10. Otomatik Yenileme
+# 11. Otomatik Yenileme
 time.sleep(guncelleme_hizi)
 st.rerun()
