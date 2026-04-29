@@ -28,13 +28,7 @@ def veri_cek(sembol):
 alu_fiyat, alu_fark, alu_liste = veri_cek('ALI=F')
 dolar_fiyat, dolar_fark, _ = veri_cek('USDTRY=X')
 
-# 5. Ana Giriş Paneli (Miktar ve Hedef)
-st.divider()
-col_inp1, col_inp2 = st.columns(2)
-with col_inp1:
-    miktar = st.number_input("Eldeki Miktar (Ton)", min_value=0.0, value=1.0, step=0.1)
-with col_inp2:
-    hedef_fiyat = st.number_input("Satış Hedef Fiyatı (USD/Ton)", min_value=0.0, value=2600.0, step=10.0)
+
 
 
 
