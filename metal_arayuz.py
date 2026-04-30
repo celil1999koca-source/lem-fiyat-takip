@@ -7,36 +7,7 @@ import base64 # Görseli yüklemek için gerekli
 # 1. Sayfa Ayarları
 st.set_page_config(page_title="Alüminyum Profesyonel Takip", layout="wide")
 
-# --- ARKA PLAN GÖRSELİ AYARLARI ---
-# Görseli base64 formatına çeviren fonksiyon
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
 
-# Arka plan görselini ve overlay'i uygulayan CSS
-def set_png_as_page_bg(png_file):
-    try:
-        bin_str = get_base64_of_bin_file(png_file)
-        page_bg_img = f'''
-        <style>
-        .stApp {{
-            background-image: url("data:image/png;base64,{bin_str}");
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-        
-        /* İçeriğin okunabilirliği için hafif bir overlay (karartma) */
-        .stApp::before {{
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4); /* Karartma oranı: 0.4 */
-            z-index: -1;
         }}
         
         /* Metinleri ve kartları daha okunaklı yapmak için stil ayarı */
