@@ -61,9 +61,7 @@ def set_png_as_page_bg(png_file):
     except FileNotFoundError:
         st.warning(f"⚠️ Arka plan görseli bulunamadı. Lütfen '{png_file}' dosyasının proje klasöründe olduğundan emin olun.")
 
-# Görseli uygula (billet.png isminde bir dosya yüklemelisin)
-set_png_as_page_bg('billet.png')
-# ----------------------------------
+
 
 # 2. Başlık
 st.markdown("<h2 style='text-align: center; color: white;'>💼 Alüminyum Ticari Takip Paneli</h2>", unsafe_allow_html=True)
