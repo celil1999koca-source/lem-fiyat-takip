@@ -64,7 +64,7 @@ def set_png_as_page_bg(png_file):
 
 
 # 2. Başlık
-st.markdown("<h2 style='text-align: center; color: white;'>💼 Alüminyum Ticari Takip Paneli</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: black;'>💼 Alüminyum Ticari Takip Paneli</h2>", unsafe_allow_html=True)
 
 # 3. Ayarlar (Sidebar)
 guncelleme_hizi = st.sidebar.slider("Güncelleme Hızı (Saniye)", 30, 300, 60)
